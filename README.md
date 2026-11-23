@@ -25,6 +25,15 @@ Effort is libwebp's lossless preset (`cwebp -z 0..9`); in lossy mode it maps to 
 
 Above effort 2, files get only slightly smaller and encoding gets much slower. Near-lossless needs effort 1 or more; at effort 0 it runs at effort 1, because libwebp skips the near-lossless pass at method 0.
 
+## Download
+
+[Releases](https://github.com/FuouM/batchWEBP/releases) include:
+
+- the Windows app, as an installer (`batchWEBP_<version>_x64-setup.exe`) or a portable exe. It needs the WebView2 runtime, which ships with Windows 10 and 11.
+- the CLI for Windows x64, Linux x64 and macOS arm64.
+
+To publish a release, set the same version in `Cargo.toml`, `package.json` and `src-tauri/tauri.conf.json`, then push the tag `v<version>`. Running the Release workflow by hand builds the same files without publishing them.
+
 ## CLI
 
 ```

@@ -1,0 +1,126 @@
+name: Release
+
+# Tag vX.Y.Z (matching the versions in Cargo.toml, package.json and tauri.conf.json) to publish a
+# GitHub release. A manual run builds the same artifacts without publishing.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.read.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: read
+        shell: bash
+        run: |
+          cargo_v=$(sed -n '/^\[workspace.package\]/,/^\[/s/^version = "\(.*\)"/\1/p' Cargo.toml)
+          npm_v=$(jq -r .version package.json)
+          tauri_v=$(jq -r .version src-tauri/tauri.conf.json)
+          echo "Cargo $cargo_v, package.json $npm_v, tauri.conf.json $tauri_v"
+          if [ "$cargo_v" != "$npm_v" ] || [ "$cargo_v" != "$tauri_v" ]; then
+            echo "::error::Version mismatch"; exit 1
+          fi
+          if [ "${GITHUB_REF_TYPE}" = "tag" ] && [ "${GITHUB_REF_NAME}" != "v$cargo_v" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match version $cargo_v"; exit 1
+          fi
+          echo "version=$cargo_v" >> "$GITHUB_OUTPUT"
+
+  app:
+    needs: version
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: release
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Builds dist/ (beforeBuildCommand), the optimised app and the NSIS installer.
+      - run: npm run tauri build -- --bundles nsis
+      - name: Stage
+        shell: pwsh
+        run: |
+          $v = "${{ needs.version.outputs.version }}"
+          New-Item -ItemType Directory staging | Out-Null
+          Copy-Item "target/release/bundle/nsis/batchWEBP_${v}_x64-setup.exe" "staging/batchWEBP_${v}_x64-setup.exe"
+          Copy-Item "target/release/batchwebp.exe" "staging/batchWEBP_${v}_x64_portable.exe"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app
+          path: staging/*
+          if-no-files-found: error
+
+  cli:
+    needs: version
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: macos-latest
+            target: aarch64-apple-darwin
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          prefix-key: release
+      - run: cargo build --release -p batchwebp-cli
+      - name: Package
+        shell: bash
+        run: |
+          name="batchwebp-cli-${{ needs.version.outputs.version }}-${{ matrix.target }}"
+          mkdir -p "staging/$name"
+          cp README.md LICENSE "staging/$name/"
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            cp target/release/batchwebp.exe "staging/$name/"
+            (cd staging && 7z a "$name.zip" "$name" > /dev/null)
+          else
+            cp target/release/batchwebp "staging/$name/"
+            tar -C staging -czf "staging/$name.tar.gz" "$name"
+          fi
+          rm -rf "staging/$name"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cli-${{ matrix.target }}
+          path: staging/*
+          if-no-files-found: error
+
+  publish:
+    if: github.ref_type == 'tag'
+    needs: [version, app, cli]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: staging
+          merge-multiple: true
+      - name: Checksums
+        run: cd staging && sha256sum * | tee SHA256SUMS.txt
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: batchWEBP ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: staging/*

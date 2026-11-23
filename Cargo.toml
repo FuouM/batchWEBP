@@ -1,0 +1,36 @@
+[workspace]
+resolver = "3"
+members = ["crates/batchwebp-core", "crates/batchwebp-cli", "src-tauri"]
+default-members = ["crates/batchwebp-core", "crates/batchwebp-cli"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/FuouM/batchWEBP"
+
+[workspace.dependencies]
+batchwebp-core = { path = "crates/batchwebp-core" }
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+crossbeam-channel = "0.5"
+ignore = "0.4"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "bmp", "tiff", "tga", "qoi"] }
+# sse41: SSE4.1 kernels without the runtime CPU check (any x86-64 CPU since 2008 has SSE4.1).
+libwebp-sys = { version = "0.14", features = ["sse41"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Decoders and libwebp dominate run time: optimise dependencies even in dev.
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true
+# Unwind, not abort: a decoder panic on one corrupt file must not kill a million-file run.
+panic = "unwind"

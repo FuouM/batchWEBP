@@ -1,0 +1,13 @@
+# Build output
+/target
+/dist
+/node_modules
+/src-tauri/gen
+
+# Repo-local toolchain (junction), scratch output
+/.rust
+/.scratch
+
+# rustfmt backups, MSVC debug info
+**/*.rs.bk
+*.pdb

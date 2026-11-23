@@ -1,0 +1,22 @@
+[package]
+name = "batchwebp"
+description = "Convert a folder of images to WebP"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+default-run = "batchwebp"
+
+[lib]
+name = "batchwebp_lib"
+crate-type = ["rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+batchwebp-core.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"

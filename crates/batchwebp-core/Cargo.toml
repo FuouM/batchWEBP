@@ -1,0 +1,15 @@
+[package]
+name = "batchwebp-core"
+description = "Parallel folder-to-WebP converter (libwebp)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+crossbeam-channel.workspace = true
+ignore.workspace = true
+image.workspace = true
+libwebp-sys.workspace = true
+serde.workspace = true

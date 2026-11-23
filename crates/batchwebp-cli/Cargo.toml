@@ -1,0 +1,16 @@
+[package]
+name = "batchwebp-cli"
+description = "Convert a folder of images to WebP from the command line"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "batchwebp"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+batchwebp-core.workspace = true

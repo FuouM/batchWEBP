@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <rect x="64" y="64" width="896" height="896" rx="180" fill="#1f6feb"/>
+  <rect x="200" y="250" width="420" height="340" rx="36" fill="none" stroke="#ffffff" stroke-width="44"/>
+  <circle cx="320" cy="360" r="42" fill="#ffffff"/>
+  <path d="M222 568 L370 430 L460 510 L520 460 L598 540" fill="none" stroke="#ffffff" stroke-width="40" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M650 420 L800 420 M750 360 L815 420 L750 480" fill="none" stroke="#ffffff" stroke-width="44" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="512" y="820" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-weight="700" font-size="190" fill="#ffffff">WEBP</text>
+</svg>

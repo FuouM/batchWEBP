@@ -20,7 +20,7 @@ jobs:
     outputs:
       version: ${{ steps.read.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - id: read
         shell: bash
         run: |
@@ -40,12 +40,12 @@ jobs:
     needs: version
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
           prefix-key: release
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
@@ -59,7 +59,7 @@ jobs:
           New-Item -ItemType Directory staging | Out-Null
           Copy-Item "target/release/bundle/nsis/batchWEBP_${v}_x64-setup.exe" "staging/batchWEBP_${v}_x64-setup.exe"
           Copy-Item "target/release/batchwebp.exe" "staging/batchWEBP_${v}_x64_portable.exe"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: app
           path: staging/*
@@ -79,7 +79,7 @@ jobs:
             target: aarch64-apple-darwin
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
         with:
@@ -99,7 +99,7 @@ jobs:
             tar -C staging -czf "staging/$name.tar.gz" "$name"
           fi
           rm -rf "staging/$name"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: cli-${{ matrix.target }}
           path: staging/*
@@ -112,13 +112,13 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: staging
           merge-multiple: true
       - name: Checksums
         run: cd staging && sha256sum * | tee SHA256SUMS.txt
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           name: batchWEBP ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
